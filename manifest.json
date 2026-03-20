@@ -1,0 +1,26 @@
+{
+  "name": "NTSA Model Town Driving Simulator",
+  "short_name": "MTB Simulator",
+  "description": "NTSA Kenya Model Town Driving Simulator — Road Signs, Theory Quiz & Simulator",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d0f14",
+  "theme_color": "#f5c518",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "utilities"],
+  "lang": "en"
+}

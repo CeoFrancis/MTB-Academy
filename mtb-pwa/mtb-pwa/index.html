@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="NTSA Kenya Model Town Driving Simulator — Road Signs, Theory Quiz &amp; Driving Simulator">
+<meta name="theme-color" content="#f5c518">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MTB Simulator">
+
+<title>NTSA Model Town Driving Simulator</title>
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- App Icons -->
+<link rel="icon" type="image/svg+xml" href="icon-192.svg">
+<link rel="apple-touch-icon" href="icon-192.svg">
+
+<!-- Stylesheet -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-badge">NTSA</div>
+    <div class="logo-text">
+      <h1>MODEL TOWN DRIVING SIMULATOR</h1>
+      <p>NATIONAL TRANSPORT &amp; SAFETY AUTHORITY · KENYA</p>
+    </div>
+  </div>
+  <div style="font-size:11px;color:var(--dim);letter-spacing:1px;" id="headerPageName">DRIVING SIMULATOR</div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <ul>
+    <li class="active" onclick="showPage('sim',0)"    id="nav-sim">
+      <span class="nav-icon">🚗</span><span class="nav-label">SIMULATOR</span>
+    </li>
+    <li onclick="showPage('signs',1)"   id="nav-signs">
+      <span class="nav-icon">🛣️</span><span class="nav-label">ROAD SIGNS</span>
+    </li>
+    <li onclick="showPage('general',2)" id="nav-general">
+      <span class="nav-icon">📖</span><span class="nav-label">GENERAL Q&amp;A</span>
+    </li>
+    <li onclick="showPage('quiz',3)"    id="nav-quiz">
+      <span class="nav-icon">📝</span><span class="nav-label">QUIZ</span>
+    </li>
+  </ul>
+</aside>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- ══ PAGE 0: SIMULATOR ══ -->
+  <div class="page state-active" id="page-sim">
+    <div style="padding:12px 14px;">
+
+      <div class="sim-topbar">
+        <button onclick="toggleFullscreen()">⛶ FULLSCREEN</button>
+        <button onclick="toggleTraffic()" id="trafficBtn">🚦 TRAFFIC: ON</button>
+        <button onclick="addTrafficLight()">⊕ ADD LIGHT</button>
+        <button onclick="toggleAllTL()" id="tlPauseBtn">⏸ PAUSE LIGHTS</button>
+      </div>
+
+      <div class="sim-layout">
+        <canvas id="gameCanvas" width="920" height="538"></canvas>
+
+        <div class="sim-right">
+          <!-- Vehicle fleet -->
+          <div class="panel-box">
+            <h3>🚗 VEHICLES</h3>
+            <div id="vehicle-panel" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:6px;"></div>
+            <button onclick="resetVehicles()" style="border-color:var(--blue);color:var(--blue);">↺ RESET ALL</button>
+            <div style="margin-top:6px;font-size:10px;color:#444;line-height:1.6;">
+              • Click vehicle to select<br>• Arrow keys to drive<br>• Drag to reposition
+            </div>
+          </div>
+
+          <!-- Road Signs mini -->
+          <div class="panel-box">
+            <h3>🛣 ROAD SIGN</h3>
+            <div class="sign-img-wrap" id="signWidget">
+              <div style="width:72px;height:72px;" id="signImage"></div>
+            </div>
+            <p id="signText" style="font-size:11px;color:var(--dim);text-align:center;line-height:1.5;">W.1 · SHARP LEFT BEND — Reduce speed; dangerous bend ahead.</p>
+            <button onclick="nextSign()">▶ NEXT SIGN</button>
+            <button onclick="showPage('signs',1)" style="border-color:var(--blue);color:var(--blue);">↗ ALL SIGNS</button>
+          </div>
+
+          <!-- Traffic lights -->
+          <div class="panel-box">
+            <h3>🚦 TRAFFIC LIGHTS</h3>
+            <button onclick="deleteSelectedTL()" class="danger">✕ DELETE SELECTED</button>
+            <div id="tl-status-list"><div style="color:#444;font-size:11px;padding:4px 0;">No lights yet</div></div>
+            <div id="tl-hint" style="margin-top:6px;font-size:10px;color:#444;line-height:1.6;">
+              • ADD LIGHT → click map<br>• Drag to move<br>• Click to cycle state<br>• Right-click to delete
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ PAGE 1: ROAD SIGNS ══ -->
+  <div class="page state-hidden-right" id="page-signs">
+    <div class="flipbook-page">
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">Road Signs</div>
+          <div class="page-subtitle">KENYA TRAFFIC ACT — OFFICIAL ROAD SIGNS REFERENCE</div>
+        </div>
+        <div class="page-number">01</div>
+      </div>
+
+      <!-- Category nav -->
+      <nav class="signs-nav" id="signs-nav">
+        <button class="signs-nav-btn active" onclick="scrollToCategory('sec-warning',    this)">⚠ WARNING</button>
+        <button class="signs-nav-btn"        onclick="scrollToCategory('sec-mandatory',  this)">🔵 MANDATORY</button>
+        <button class="signs-nav-btn"        onclick="scrollToCategory('sec-prohibitory',this)">🔴 PROHIBITORY</button>
+        <button class="signs-nav-btn"        onclick="scrollToCategory('sec-priority',   this)">🛑 PRIORITY</button>
+        <button class="signs-nav-btn"        onclick="scrollToCategory('sec-info',       this)">ℹ INFORMATORY</button>
+      </nav>
+
+      <div id="sec-warning">
+        <div class="sign-category-title">⚠ WARNING SIGNS</div>
+        <div class="signs-grid" id="warning-signs"></div>
+      </div>
+
+      <div id="sec-mandatory">
+        <div class="sign-category-title">🔵 MANDATORY SIGNS</div>
+        <div class="signs-grid" id="mandatory-signs"></div>
+      </div>
+
+      <div id="sec-prohibitory">
+        <div class="sign-category-title">🔴 PROHIBITORY SIGNS</div>
+        <div class="signs-grid" id="prohibitory-signs"></div>
+      </div>
+
+      <div id="sec-priority">
+        <div class="sign-category-title">🛑 PRIORITY SIGNS</div>
+        <div class="signs-grid" id="priority-signs"></div>
+      </div>
+
+      <div id="sec-info">
+        <div class="sign-category-title">ℹ INFORMATORY SIGNS</div>
+        <div class="signs-grid" id="info-signs"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ PAGE 2: GENERAL QUESTIONS ══ -->
+  <div class="page state-hidden-right" id="page-general">
+    <div class="flipbook-page">
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">General Questions</div>
+          <div class="page-subtitle">NTSA DRIVING THEORY — 62 OFFICIAL Q&amp;A</div>
+          <!-- FAQ Speech Bar -->
+          <div class="tts-bar" id="tts-bar-faq">
+            <button class="tts-icon-btn" id="faq-play-btn" onclick="faqTtsPlayPause()" title="Play / Pause">▶</button>
+            <button class="tts-icon-btn" id="faq-stop-btn" onclick="faqTtsStop()"      title="Stop">■</button>
+            <div class="tts-divider"></div>
+            <button class="tts-auto-btn" id="faq-auto-btn" onclick="faqTtsToggleAuto()" title="Auto-read each question when opened">🔁 AUTO-READ</button>
+            <div class="tts-divider"></div>
+            <select class="tts-voice" id="faq-voice" title="Voice"></select>
+            <span class="tts-label">SPEED</span>
+            <input  class="tts-rate" id="faq-rate" type="range" min="0.5" max="1.8" step="0.1" value="0.95"
+                    oninput="faqTtsRateChange(this.value)" title="Speed">
+          </div>
+        </div>
+        <div class="page-number">02</div>
+      </div>
+
+      <div style="margin-bottom:14px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);padding:8px 12px;max-width:520px;">
+          <span style="color:var(--gold);font-size:13px;">🔍</span>
+          <input id="faq-search" type="text" placeholder="Search by Q number or keyword…"
+            oninput="searchFAQ(this.value)"
+            style="background:none;border:none;outline:none;color:white;font-size:12px;width:100%;letter-spacing:.5px;">
+          <span id="faq-search-count" style="font-size:11px;color:var(--dim);flex-shrink:0;"></span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="faq-filters">
+          <button onclick="filterFAQ('all')"        class="quiz-btn primary" id="ff-all">ALL (62)</button>
+          <button onclick="filterFAQ('overtaking')" class="quiz-btn" id="ff-overtaking">OVERTAKING</button>
+          <button onclick="filterFAQ('rules')"      class="quiz-btn" id="ff-rules">RULES</button>
+          <button onclick="filterFAQ('signs')"      class="quiz-btn" id="ff-signs">SIGNS</button>
+          <button onclick="filterFAQ('lights')"     class="quiz-btn" id="ff-lights">LIGHTS</button>
+          <button onclick="filterFAQ('parking')"    class="quiz-btn" id="ff-parking">PARKING</button>
+          <button onclick="filterFAQ('safety')"     class="quiz-btn" id="ff-safety">SAFETY</button>
+          <button onclick="filterFAQ('vehicle')"    class="quiz-btn" id="ff-vehicle">VEHICLE</button>
+          <button onclick="filterFAQ('model-town')" class="quiz-btn" id="ff-model-town">MODEL TOWN</button>
+        </div>
+      </div>
+
+      <div class="faq-list" id="faq-list"></div>
+
+    </div>
+  </div>
+
+  <!-- ══ PAGE 3: QUIZ ══ -->
+  <div class="page state-hidden-right" id="page-quiz">
+    <div class="flipbook-page">
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">Theory Quiz</div>
+          <div class="page-subtitle">NTSA DRIVING LICENCE TEST PREPARATION</div>
+          <!-- Quiz Speech Bar -->
+          <div class="tts-bar" id="tts-bar-quiz">
+            <button class="tts-icon-btn" id="quiz-play-btn" onclick="quizTtsPlayPause()" title="Play / Pause">▶</button>
+            <button class="tts-icon-btn" id="quiz-stop-btn" onclick="quizTtsStop()"      title="Stop">■</button>
+            <div class="tts-divider"></div>
+            <button class="tts-auto-btn" id="quiz-auto-btn" onclick="quizTtsToggleAuto()" title="Auto-read questions aloud">🔁 AUTO-READ</button>
+            <div class="tts-divider"></div>
+            <select class="tts-voice" id="quiz-voice" title="Voice"></select>
+            <span class="tts-label">SPEED</span>
+            <input  class="tts-rate" id="quiz-rate" type="range" min="0.5" max="1.8" step="0.1" value="0.95"
+                    oninput="quizTtsRateChange(this.value)" title="Speed">
+          </div>
+        </div>
+        <div class="page-number">03</div>
+      </div>
+
+      <div class="quiz-wrap" id="quiz-wrap">
+        <!-- rendered by JS -->
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /#main -->
+
+<!-- PAGE DOTS -->
+<div class="page-corner">
+  <div class="page-dot active" onclick="showPage('sim',0)"     title="Simulator"></div>
+  <div class="page-dot"       onclick="showPage('signs',1)"    title="Road Signs"></div>
+  <div class="page-dot"       onclick="showPage('general',2)"  title="General Q&amp;A"></div>
+  <div class="page-dot"       onclick="showPage('quiz',3)"     title="Quiz"></div>
+</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- FOOTER -->
+<footer id="site-footer">
+
+  <!-- Logo -->
+  <div class="footer-logo">
+    <div class="footer-badge">FU</div>
+    <span class="footer-brand">FRAMWAKA ULTRATECH</span>
+  </div>
+
+  <!-- Quick links -->
+  <nav class="footer-links">
+    <button onclick="showPage('sim',0)">🚗 SIMULATOR</button>
+    <button onclick="showPage('signs',1)">🛣 ROAD SIGNS</button>
+    <button onclick="showPage('general',2)">📖 Q&amp;A</button>
+    <button onclick="showPage('quiz',3)">📝 QUIZ</button>
+    <button onclick="renderQuizStart();showPage('quiz',3)">⊙ TOPICS</button>
+  </nav>
+
+  <!-- Credit -->
+  <div class="footer-credit">
+    <strong>Designed by CEO Francis</strong> &nbsp;·&nbsp;
+    <a href="https://framwakaultratech.lovable.app/" target="_blank" rel="noopener">
+      Framwaka Ultratech Limited ↗
+    </a>
+  </div>
+
+</footer>
+
+<!-- PWA: Register Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('[PWA] SW registered:', reg.scope))
+        .catch(err => console.warn('[PWA] SW registration failed:', err));
+    });
+  }
+</script>
+
+<!-- App Script -->
+<script src="app.js"></script>
+
+</body>
+</html>
